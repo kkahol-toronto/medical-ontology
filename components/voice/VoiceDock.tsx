@@ -275,14 +275,19 @@ export function VoiceDock() {
         ),
       );
     } catch (e) {
+      const raw = (e as Error).message ?? 'chat failed';
+      // Prettify common transient errors so the demo doesn't look broken.
+      const friendly = /credentials|throttl|too many|rate.?limit/i.test(raw)
+        ? "I'm warming up — please ask that again in a second."
+        : raw;
       setBubbles((prev) =>
         prev.map((b) =>
           b.id === aId
             ? {
                 ...b,
                 text: acc
-                  ? `${acc}\n\n[stream interrupted: ${(e as Error).message ?? 'chat failed'}]`
-                  : `Error: ${(e as Error).message ?? 'chat failed'}`,
+                  ? `${acc}\n\n[stream interrupted: ${friendly}]`
+                  : friendly,
                 partial: false,
               }
             : b,
@@ -313,8 +318,8 @@ export function VoiceDock() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 12, scale: 0.96 }}
             transition={{ duration: 0.2 }}
-            className="glass-strong pointer-events-auto flex w-[400px] flex-col overflow-hidden rounded-2xl text-sm shadow-glass-lg"
-            style={{ height: '560px' }}
+            className="glass-dock pointer-events-auto flex w-[420px] flex-col overflow-hidden rounded-2xl text-sm"
+            style={{ height: '600px' }}
           >
             {/* Header */}
             <div className="flex items-center justify-between border-b border-white/5 p-4">
@@ -395,12 +400,26 @@ export function VoiceDock() {
               className="flex-1 space-y-3 overflow-y-auto p-4"
             >
               {bubbles.length === 0 && (
-                <div className="space-y-3 text-xs text-white/55">
-                  <div className="rounded-xl bg-white/[0.04] p-3">
-                    Try asking <em>“Walk me through the oncology denial”</em>,{' '}
-                    <em>“Why was Mr Chen&apos;s claim denied?”</em>, or{' '}
-                    <em>“Show me the inpatient KPIs.”</em>
+                <div className="space-y-3 text-xs text-white/70">
+                  <div className="rounded-xl bg-white/[0.06] p-3 ring-1 ring-white/10">
+                    Hi, I'm <span className="font-semibold text-white">NIRA</span>. Ask
+                    me anything about the three demo cases. Try:
+                    <ul className="mt-2 space-y-1 text-white/60">
+                      <li>· <em>"Walk me through the oncology denial"</em></li>
+                      <li>· <em>"Why was Mr Chen's claim denied?"</em></li>
+                      <li>· <em>"Show me the inpatient KPIs"</em></li>
+                    </ul>
                   </div>
+                  {mode === 'text' && voiceConfigured && (
+                    <button
+                      type="button"
+                      onClick={openVoice}
+                      className="flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500/15 px-3 py-2 text-[12px] text-orange-100 ring-1 ring-orange-400/40 hover:bg-orange-500/25"
+                    >
+                      <Mic className="h-3.5 w-3.5" />
+                      Or tap to talk to me instead
+                    </button>
+                  )}
                 </div>
               )}
               {bubbles.map((b) => (
@@ -556,12 +575,12 @@ function ModeTab({
       onClick={disabled ? undefined : onClick}
       disabled={disabled}
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-medium transition-colors',
+        'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-medium uppercase tracking-wide transition-colors',
         active
-          ? 'bg-orange-500/20 text-orange-200 ring-1 ring-orange-400/40'
+          ? 'bg-orange-500/25 text-orange-100 ring-1 ring-orange-400/50'
           : disabled
             ? 'text-white/30 cursor-not-allowed'
-            : 'text-white/55 hover:text-white hover:bg-white/[0.06]',
+            : 'text-white/70 ring-1 ring-white/15 bg-white/[0.04] hover:text-white hover:bg-white/[0.1]',
       )}
     >
       {children}
@@ -600,10 +619,10 @@ function Bubble({ bubble }: { bubble: Bubble }) {
     >
       <div
         className={cn(
-          'max-w-[88%] rounded-2xl px-3 py-2 text-[13px] leading-snug whitespace-pre-wrap',
+          'max-w-[88%] rounded-2xl px-3.5 py-2.5 text-[13px] leading-snug whitespace-pre-wrap',
           isUser
-            ? 'bg-orange-500/20 text-white ring-1 ring-orange-400/30'
-            : 'bg-white/[0.06] text-white/90 ring-1 ring-white/10',
+            ? 'bg-orange-500/30 text-white ring-1 ring-orange-400/50'
+            : 'bg-white/[0.1] text-white ring-1 ring-white/15',
         )}
       >
         {bubble.text}

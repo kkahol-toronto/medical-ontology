@@ -165,6 +165,22 @@
       0 16px 48px rgb(0 0 0 / 0.4),
       inset 0 1px 0 rgb(255 255 255 / 0.12);
   }
+  /* Used for floating widgets (NIRA dock, dialogs) that overlay scrolling
+     content. Solid navy background so text stays readable on any page. */
+  .glass-dock {
+    background: linear-gradient(
+      160deg,
+      rgb(11 23 54 / 0.96),
+      rgb(15 27 60 / 0.94)
+    );
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgb(255 255 255 / 0.14);
+    box-shadow:
+      0 24px 64px rgb(0 0 0 / 0.55),
+      0 4px 16px rgb(0 0 0 / 0.35),
+      inset 0 1px 0 rgb(255 255 255 / 0.1);
+  }
   .glass-orange {
     background: linear-gradient(
       135deg,
