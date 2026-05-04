@@ -31,10 +31,25 @@ resource "aws_iam_role" "amplify_service_role" {
   description        = "Amplify Hosting service role for ${var.project}. Used by the Next.js Lambda to call Bedrock + Comprehend Medical."
 }
 
-# AWS-managed policy: lets Amplify push build logs to CloudWatch.
-resource "aws_iam_role_policy_attachment" "amplify_logs" {
-  role       = aws_iam_role.amplify_service_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AdministratorAccess-Amplify"
+data "aws_iam_policy_document" "amplify_logs" {
+  statement {
+    sid    = "CloudWatchLogs"
+    effect = "Allow"
+    actions = [
+      "logs:CreateLogGroup",
+      "logs:CreateLogStream",
+      "logs:PutLogEvents",
+      "logs:DescribeLogGroups",
+      "logs:DescribeLogStreams",
+    ]
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_role_policy" "amplify_logs" {
+  name   = "${var.project}-amplify-logs"
+  role   = aws_iam_role.amplify_service_role.id
+  policy = data.aws_iam_policy_document.amplify_logs.json
 }
 
 data "aws_iam_policy_document" "runtime_ai" {
@@ -95,18 +110,18 @@ resource "aws_amplify_app" "this" {
   # Runtime env vars surfaced to the Next.js Lambda. Long-lived AWS keys are
   # intentionally absent: the service role above grants Bedrock + Comprehend
   # access via temporary credentials.
+  # Amplify reserves env vars starting with `AWS_` (Lambda auto-injects
+  # AWS_REGION based on deployment region — the SDK picks it up natively).
   environment_variables = {
-    AWS_REGION                   = var.aws_region
     BEDROCK_MODEL_ID             = var.bedrock_model_id
     ENABLE_COMPREHEND_MEDICAL    = tostring(var.enable_comprehend_medical)
     AZURE_VOICE_LIVE_ENDPOINT    = var.azure_voice_live_endpoint
     AZURE_VOICE_LIVE_KEY         = var.azure_voice_live_key
     AZURE_VOICE_LIVE_API_VERSION = var.azure_voice_live_api_version
     AZURE_VOICE_LIVE_MODEL       = var.azure_voice_live_model
-    # Amplify build hint — tells Next.js telemetry to stay quiet.
     NEXT_TELEMETRY_DISABLED      = "1"
-    _LIVE_UPDATES                = jsonencode([
-      { name = "Node.js version", pkg = "node",  type = "nvm",     version = "20" },
+    _LIVE_UPDATES = jsonencode([
+      { name = "Node.js version", pkg = "node", type = "nvm", version = "20" },
     ])
   }
 

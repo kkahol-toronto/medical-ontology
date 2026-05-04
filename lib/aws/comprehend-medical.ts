@@ -14,16 +14,11 @@ let _client: ComprehendMedicalClient | null = null;
 
 export function comprehendClient() {
   if (_client) return _client;
-  if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
-    throw new Error('AWS credentials missing');
-  }
-  // Comprehend Medical is regional — eu-west-1 is supported.
+  // Comprehend Medical is regional — eu-west-1 is supported. Credentials
+  // come from the SDK's default provider chain (Lambda role in Amplify,
+  // env vars in dev).
   _client = new ComprehendMedicalClient({
     region: process.env.AWS_REGION ?? 'eu-west-1',
-    credentials: {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    },
   });
   return _client;
 }
@@ -150,9 +145,14 @@ export async function analyseClinicalText(
 }
 
 export function comprehendConfigured() {
-  return (
-    Boolean(process.env.AWS_ACCESS_KEY_ID) &&
-    Boolean(process.env.AWS_SECRET_ACCESS_KEY) &&
-    process.env.ENABLE_COMPREHEND_MEDICAL !== 'false'
+  if (process.env.ENABLE_COMPREHEND_MEDICAL === 'false') return false;
+  if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
+    return true;
+  }
+  return Boolean(
+    process.env.AWS_LAMBDA_FUNCTION_NAME ||
+      process.env.AWS_EXECUTION_ENV ||
+      process.env.AWS_CONTAINER_CREDENTIALS_RELATIVE_URI ||
+      process.env.AWS_CONTAINER_CREDENTIALS_FULL_URI,
   );
 }

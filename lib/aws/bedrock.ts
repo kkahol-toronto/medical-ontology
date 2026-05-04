@@ -5,19 +5,18 @@ import {
 
 let _client: BedrockRuntimeClient | null = null;
 
+/**
+ * Build a Bedrock client. We let the AWS SDK resolve credentials via its
+ * default provider chain so the same code works in:
+ *  - local dev   (AWS_ACCESS_KEY_ID / SECRET in .env)
+ *  - Amplify     (Lambda role injected via AWS_LAMBDA_RUNTIME_API)
+ *  - EC2 / ECS   (instance / task role)
+ *  - SSO / CLI   (~/.aws/credentials)
+ */
 export function bedrockClient() {
   if (_client) return _client;
   const region = process.env.AWS_REGION ?? 'eu-west-1';
-  if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
-    throw new Error('AWS credentials missing');
-  }
-  _client = new BedrockRuntimeClient({
-    region,
-    credentials: {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    },
-  });
+  _client = new BedrockRuntimeClient({ region });
   return _client;
 }
 
@@ -150,8 +149,20 @@ export async function* streamClaude(
   if (lastErr) throw lastErr;
 }
 
+/**
+ * Bedrock is "configured" if either explicit creds are present (dev) or
+ * we are running inside an AWS execution context that supplies them via
+ * the SDK provider chain (Lambda / ECS / EC2). We use the presence of
+ * AWS_LAMBDA_FUNCTION_NAME / AWS_EXECUTION_ENV as a strong signal.
+ */
 export function bedrockConfigured() {
+  if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
+    return true;
+  }
   return Boolean(
-    process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY,
+    process.env.AWS_LAMBDA_FUNCTION_NAME ||
+      process.env.AWS_EXECUTION_ENV ||
+      process.env.AWS_CONTAINER_CREDENTIALS_RELATIVE_URI ||
+      process.env.AWS_CONTAINER_CREDENTIALS_FULL_URI,
   );
 }
