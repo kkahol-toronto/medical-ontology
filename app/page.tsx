@@ -19,11 +19,11 @@ export default function HomePage() {
             AI led RCM operating model
           </div>
           <h1 className="text-5xl font-bold leading-[1.05] tracking-tight text-white lg:text-6xl">
-            <span className="text-gradient-mix">Neurostack</span> brings
+            <span className="text-gradient-mix">Neurostack</span> enabled
             <br />
-            Revenue Cycle Management
+            Agentic Revenue Cycle
             <br />
-            to autonomous.
+            Management.
           </h1>
           <p className="mt-6 max-w-xl text-base text-white/70 lg:text-lg">
             Nine specialised agents executing eligibility through collections
