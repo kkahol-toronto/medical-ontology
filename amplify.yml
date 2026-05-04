@@ -1,0 +1,23 @@
+version: 1
+applications:
+  - appRoot: .
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - echo "Node $(node -v) · npm $(npm -v)"
+            - npm ci --include=dev --no-audit --no-fund
+        build:
+          commands:
+            - echo "Building Next.js 16 SSR bundle for Amplify Hosting Compute"
+            - npm run build
+      artifacts:
+        # Amplify auto-detects Next.js SSR output and handles routing for
+        # both /app/ pages and /app/api/* (Lambda@Edge under the hood).
+        baseDirectory: .next
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - .next/cache/**/*
+          - node_modules/**/*

@@ -1,0 +1,15 @@
+# Copy to terraform.tfvars and fill in values. terraform.tfvars is gitignored.
+
+aws_region            = "eu-west-1"
+github_repository_url = "https://github.com/<owner>/<repo>"
+github_access_token   = "ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+branch_name           = "main"
+enable_auto_build     = true
+
+bedrock_model_id          = "eu.anthropic.claude-opus-4-7"
+enable_comprehend_medical = true
+
+azure_voice_live_endpoint    = "https://<resource>.services.ai.azure.com/api/projects/<project>"
+azure_voice_live_key         = "..."
+azure_voice_live_api_version = "2025-10-01"
+azure_voice_live_model       = "gpt-realtime"

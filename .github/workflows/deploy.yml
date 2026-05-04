@@ -1,0 +1,63 @@
+name: Deploy to AWS Amplify
+
+# Reference workflow — adapt to whatever CI your team runs (GitLab, Jenkins,
+# CodePipeline, etc.). The deploy script itself is provider-agnostic.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {} # allow manual one-click redeploys from the Actions tab
+
+concurrency:
+  group: amplify-deploy-${{ github.ref }}
+  cancel-in-progress: false # never cancel a deploy mid-flight
+
+jobs:
+  deploy:
+    name: Build + deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      id-token: write # required if you switch to OIDC instead of webhook
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install deps
+        run: npm ci --include=dev --no-audit --no-fund
+
+      - name: Lint (non-blocking)
+        run: npm run lint || true
+
+      - name: Production build (smoke)
+        run: npm run build
+
+      # ---- Trigger Amplify -------------------------------------------------
+      # Easiest path: webhook URL from the Amplify console saved as a secret.
+      # No AWS credentials needed in CI.
+      - name: Trigger Amplify deploy
+        env:
+          AMPLIFY_WEBHOOK_URL: ${{ secrets.AMPLIFY_WEBHOOK_URL }}
+        run: ./scripts/deploy-amplify.sh
+
+      # Alternative (uncomment + delete the webhook step above) if you prefer
+      # OIDC-based AWS auth and per-job control over branch + region:
+      #
+      # - name: Configure AWS via OIDC
+      #   uses: aws-actions/configure-aws-credentials@v4
+      #   with:
+      #     role-to-assume: arn:aws:iam::123456789012:role/github-amplify-deploy
+      #     aws-region: eu-west-1
+      # - name: Trigger Amplify deploy
+      #   env:
+      #     AMPLIFY_APP_ID: ${{ vars.AMPLIFY_APP_ID }}
+      #     AMPLIFY_BRANCH: main
+      #     AMPLIFY_REGION: eu-west-1
+      #   run: ./scripts/deploy-amplify.sh

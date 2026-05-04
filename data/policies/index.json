@@ -1,0 +1,50 @@
+[
+  {
+    "slug": "aetna-pemetrexed",
+    "title": "Aetna · Pemetrexed Products — Medical Clinical Policy Bulletin",
+    "citation": "Aetna CPB Pemetrexed §III",
+    "pages": 54,
+    "chars": 117596,
+    "sourcePdf": "docs/payer_docs/aetna/Pemetrexed Products - Medical Clinical Policy Bulletins _ Aetna.pdf"
+  },
+  {
+    "slug": "um-mp353-keytruda",
+    "title": "UM-MP353 · Keytruda (pembrolizumab)",
+    "citation": "UM-MP353 Keytruda Policy",
+    "pages": 24,
+    "chars": 44772,
+    "sourcePdf": "docs/payer_docs/um_policies/UM-MP353-Keytruda-pembrolizumab-1.pdf"
+  },
+  {
+    "slug": "healthfirst-pa-list",
+    "title": "Healthfirst · Prior Authorization Code List (2026-03-27)",
+    "citation": "Healthfirst PA Code List 2026-03",
+    "pages": 179,
+    "chars": 46353,
+    "sourcePdf": "docs/payer_docs/healthfirst/Healthfirst-Prior-Authorization-Code-List_2026-03-27-172616_yyhh.pdf"
+  },
+  {
+    "slug": "healthfirst-clinical-guidelines",
+    "title": "Healthfirst · Clinical Guidelines Quick-Reference",
+    "citation": "Healthfirst Clinical Guidelines (1690-23-qrg)",
+    "pages": 7,
+    "chars": 3256,
+    "sourcePdf": "docs/payer_docs/healthfirst/1690-23-qrg-healthfirst-clinical-guidelines-r2-wr_fETX.pdf"
+  },
+  {
+    "slug": "mod25-em-policy",
+    "title": "EM Preventive Modifier 25 — Payment Policy",
+    "citation": "Modifier 25 Payment Policy",
+    "pages": 3,
+    "chars": 5045,
+    "sourcePdf": "docs/payer_docs/payment_policies/EM-Preventive-Modifier-25-Policy-Final.pdf"
+  },
+  {
+    "slug": "tvus-payment-policy",
+    "title": "Transabdominal / Transvaginal Ultrasound — Payment Policy",
+    "citation": "TVUS Payment Policy v2",
+    "pages": 2,
+    "chars": 3884,
+    "sourcePdf": "docs/payer_docs/payment_policies/Transabdominal-Transvaginal-Ultrasound-Payment-Policy-PDF-v2-ss2.pdf"
+  }
+]

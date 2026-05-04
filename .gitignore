@@ -1,0 +1,42 @@
+node_modules
+.next
+out
+dist
+build
+.env
+.env.local
+.env.*.local
+*.tsbuildinfo
+next-env.d.ts
+.DS_Store
+.vercel
+.cache
+.turbo
+
+# Generated case JSON fixtures (the .ts source-of-truth IS committed)
+data/cases/*.json
+
+# Keep policy markdown extracts in the repo — NIRA needs them at runtime
+# data/policies/*.md  ← intentionally NOT ignored
+
+# Heavy source PDFs are NOT needed at runtime; keep them out of git to avoid
+# repo bloat (~67 MB). Re-generate the markdown extracts with
+# `npm run extract-policies` when source PDFs change.
+docs/payer_docs/_archives/
+docs/payer_docs/_flat/
+docs/payer_docs/**/*.pdf
+docs/**/*.docx
+docs/**/*.xlsx
+
+# Terraform
+infra/terraform/.terraform/
+infra/terraform/.terraform.lock.hcl
+infra/terraform/terraform.tfstate
+infra/terraform/terraform.tfstate.*
+infra/terraform/*.tfvars
+!infra/terraform/*.tfvars.example
+infra/terraform/.terraform.tfstate.lock.info
+
+# Keep placeholder
+!data/cases/.gitkeep
+!data/policies/.gitkeep
