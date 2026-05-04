@@ -15,12 +15,18 @@ data "aws_caller_identity" "current" {}
 # ============================================================================
 
 data "aws_iam_policy_document" "amplify_assume" {
+  # Trusted by:
+  #   - amplify.amazonaws.com — the Amplify build/control plane
+  #   - lambda.amazonaws.com  — the SSR compute runtime (Hosting Compute)
   statement {
     effect  = "Allow"
     actions = ["sts:AssumeRole"]
     principals {
-      type        = "Service"
-      identifiers = ["amplify.amazonaws.com"]
+      type = "Service"
+      identifiers = [
+        "amplify.amazonaws.com",
+        "lambda.amazonaws.com",
+      ]
     }
   }
 }

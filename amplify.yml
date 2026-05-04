@@ -9,6 +9,22 @@ applications:
             - npm ci --include=dev --no-audit --no-fund
         build:
           commands:
+            # Amplify Hosting Compute env vars are BUILD-time only by default.
+            # Bake the runtime ones into .env.production so Next.js inlines
+            # them into the SSR Lambda bundle. process.env.X then works
+            # inside route handlers in production.
+            - echo "Baking runtime env vars into .env.production"
+            - |
+              {
+                echo "BEDROCK_MODEL_ID=$BEDROCK_MODEL_ID"
+                echo "BEDROCK_REGION=$BEDROCK_REGION"
+                echo "COMPREHEND_REGION=$COMPREHEND_REGION"
+                echo "ENABLE_COMPREHEND_MEDICAL=$ENABLE_COMPREHEND_MEDICAL"
+                echo "AZURE_VOICE_LIVE_ENDPOINT=$AZURE_VOICE_LIVE_ENDPOINT"
+                echo "AZURE_VOICE_LIVE_KEY=$AZURE_VOICE_LIVE_KEY"
+                echo "AZURE_VOICE_LIVE_API_VERSION=$AZURE_VOICE_LIVE_API_VERSION"
+                echo "AZURE_VOICE_LIVE_MODEL=$AZURE_VOICE_LIVE_MODEL"
+              } > .env.production
             - echo "Building Next.js 16 SSR bundle for Amplify Hosting Compute"
             - npm run build
       artifacts:
