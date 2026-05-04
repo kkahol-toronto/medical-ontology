@@ -59,6 +59,10 @@ resource "aws_iam_role_policy" "amplify_logs" {
 }
 
 data "aws_iam_policy_document" "runtime_ai" {
+  # Cross-region inference profiles (eu.anthropic.*, us.anthropic.*) route
+  # individual requests through any region in the geo. The IAM check fires
+  # on the resolved foundation model in whichever region the request lands,
+  # so the foundation-model ARN must allow ALL regions in that geo.
   statement {
     sid    = "BedrockInvoke"
     effect = "Allow"
@@ -67,8 +71,9 @@ data "aws_iam_policy_document" "runtime_ai" {
       "bedrock:InvokeModelWithResponseStream",
     ]
     resources = [
-      "arn:aws:bedrock:${var.aws_region}::foundation-model/anthropic.claude-*",
-      "arn:aws:bedrock:${var.aws_region}:${data.aws_caller_identity.current.account_id}:inference-profile/eu.anthropic.claude-*",
+      "arn:aws:bedrock:*::foundation-model/anthropic.claude-*",
+      "arn:aws:bedrock:*:${data.aws_caller_identity.current.account_id}:inference-profile/eu.anthropic.claude-*",
+      "arn:aws:bedrock:*:${data.aws_caller_identity.current.account_id}:inference-profile/us.anthropic.claude-*",
     ]
   }
 
@@ -176,9 +181,13 @@ resource "aws_amplify_branch" "main" {
 # after creation. Re-runs are idempotent.
 # ----------------------------------------------------------------------------
 resource "null_resource" "amplify_compute_role" {
+  # Re-run on EVERY apply (timestamp() is always fresh) so the compute role
+  # stays attached even when other aws_amplify_app fields are updated by
+  # Terraform. The underlying API call is idempotent.
   triggers = {
-    app_id   = aws_amplify_app.this.id
-    role_arn = aws_iam_role.amplify_service_role.arn
+    app_id    = aws_amplify_app.this.id
+    role_arn  = aws_iam_role.amplify_service_role.arn
+    always    = timestamp()
   }
 
   provisioner "local-exec" {
