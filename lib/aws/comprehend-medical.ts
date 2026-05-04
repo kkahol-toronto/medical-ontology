@@ -14,12 +14,14 @@ let _client: ComprehendMedicalClient | null = null;
 
 export function comprehendClient() {
   if (_client) return _client;
-  // Comprehend Medical is regional — eu-west-1 is supported. Credentials
-  // come from the SDK's default provider chain (Lambda role in Amplify,
-  // env vars in dev).
-  _client = new ComprehendMedicalClient({
-    region: process.env.AWS_REGION ?? 'eu-west-1',
-  });
+  // COMPREHEND_REGION wins over AWS_REGION because Lambda runtimes auto-set
+  // AWS_REGION to the deployment region, which may not be where Comprehend
+  // Medical is provisioned.
+  const region =
+    process.env.COMPREHEND_REGION ??
+    process.env.AWS_REGION ??
+    'eu-west-1';
+  _client = new ComprehendMedicalClient({ region });
   return _client;
 }
 

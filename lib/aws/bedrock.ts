@@ -15,7 +15,11 @@ let _client: BedrockRuntimeClient | null = null;
  */
 export function bedrockClient() {
   if (_client) return _client;
-  const region = process.env.AWS_REGION ?? 'eu-west-1';
+  // BEDROCK_REGION wins over AWS_REGION because Lambda runtimes (Amplify
+  // Hosting Compute, etc.) auto-inject AWS_REGION as the *deployment* region,
+  // which may not be the region where Bedrock + the inference profile live.
+  const region =
+    process.env.BEDROCK_REGION ?? process.env.AWS_REGION ?? 'eu-west-1';
   _client = new BedrockRuntimeClient({ region });
   return _client;
 }

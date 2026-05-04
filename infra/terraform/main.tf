@@ -151,6 +151,8 @@ resource "aws_amplify_branch" "main" {
   # inside route handlers because of this.
   environment_variables = {
     BEDROCK_MODEL_ID             = var.bedrock_model_id
+    BEDROCK_REGION               = var.aws_region
+    COMPREHEND_REGION            = var.aws_region
     ENABLE_COMPREHEND_MEDICAL    = tostring(var.enable_comprehend_medical)
     AZURE_VOICE_LIVE_ENDPOINT    = var.azure_voice_live_endpoint
     AZURE_VOICE_LIVE_KEY         = var.azure_voice_live_key
