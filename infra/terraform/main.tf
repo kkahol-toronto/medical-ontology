@@ -144,6 +144,40 @@ resource "aws_amplify_branch" "main" {
 
   enable_auto_build = var.enable_auto_build
   display_name      = var.branch_name
+
+  # Branch-level env vars are exposed to the SSR Lambda at RUNTIME (in
+  # addition to build time). App-level vars are build-time only — so we
+  # mirror everything here for runtime visibility. process.env.X works
+  # inside route handlers because of this.
+  environment_variables = {
+    BEDROCK_MODEL_ID             = var.bedrock_model_id
+    ENABLE_COMPREHEND_MEDICAL    = tostring(var.enable_comprehend_medical)
+    AZURE_VOICE_LIVE_ENDPOINT    = var.azure_voice_live_endpoint
+    AZURE_VOICE_LIVE_KEY         = var.azure_voice_live_key
+    AZURE_VOICE_LIVE_API_VERSION = var.azure_voice_live_api_version
+    AZURE_VOICE_LIVE_MODEL       = var.azure_voice_live_model
+  }
+}
+
+# ----------------------------------------------------------------------------
+# Attach the IAM role to the SSR Lambda compute environment.
+#
+# As of Nov 2024, Amplify Hosting Compute supports a per-app "compute role"
+# distinct from the build-time iam_service_role_arn. The Terraform AWS
+# provider doesn't yet expose this field, so we patch the app via the CLI
+# after creation. Re-runs are idempotent.
+# ----------------------------------------------------------------------------
+resource "null_resource" "amplify_compute_role" {
+  triggers = {
+    app_id   = aws_amplify_app.this.id
+    role_arn = aws_iam_role.amplify_service_role.arn
+  }
+
+  provisioner "local-exec" {
+    command = "aws amplify update-app --app-id ${aws_amplify_app.this.id} --compute-role-arn ${aws_iam_role.amplify_service_role.arn} --region ${var.aws_region} >/dev/null"
+  }
+
+  depends_on = [aws_amplify_app.this, aws_iam_role_policy.runtime_ai]
 }
 
 # Incoming webhook your CI script POSTs to.
