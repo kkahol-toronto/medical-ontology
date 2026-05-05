@@ -1,6 +1,7 @@
 'use client';
 
-import { Pause, Play, RotateCcw, SkipForward, Sparkles } from 'lucide-react';
+import { FileSearch, Pause, Play, RotateCcw, SkipForward, Sparkles, User } from 'lucide-react';
+import Link from 'next/link';
 import { useState } from 'react';
 import { AgentWorkSurface } from '@/components/AgentWorkSurface';
 import { AppealLetterPanel } from '@/components/AppealLetterPanel';
@@ -8,6 +9,7 @@ import { ComprehendMedicalPanel } from '@/components/ComprehendMedicalPanel';
 import { GlassButton } from '@/components/glass/GlassButton';
 import { GlassCard } from '@/components/glass/GlassCard';
 import { OrchestrationRail } from '@/components/OrchestrationRail';
+import { StageDetailPanel } from '@/components/stage-detail/StageDetailPanel';
 import { StageTimeline } from '@/components/StageTimeline';
 import { STAGE_NUMBER, STAGE_TITLE } from '@/data/cases';
 import { useAgentRunner } from '@/lib/agents/runner';
@@ -21,6 +23,7 @@ export function CaseConsole({ case: c }: { case: RcmCase }) {
 
   const isHero = c.id === 'oncology' && selectedStage === 'denial';
   const isCdi = selectedStage === 'cdi';
+  const stageDetail = c.stageDetails?.[selectedStage];
 
   return (
     <div className="space-y-6 pt-2">
@@ -34,6 +37,18 @@ export function CaseConsole({ case: c }: { case: RcmCase }) {
           <p className="mt-1 max-w-2xl text-sm text-white/55">{c.subtitle}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <Link href={`/case/${c.id}/summary`}>
+            <GlassButton variant="ghost" size="md">
+              <User className="h-4 w-4" />
+              Patient summary
+            </GlassButton>
+          </Link>
+          <Link href="/views/analytics">
+            <GlassButton variant="ghost" size="md">
+              <FileSearch className="h-4 w-4" />
+              Analytics
+            </GlassButton>
+          </Link>
           <GlassButton
             variant="primary"
             size="md"
@@ -126,6 +141,21 @@ export function CaseConsole({ case: c }: { case: RcmCase }) {
           />
           {isCdi && <ComprehendMedicalPanel case_={c} runState={runState} />}
           {isHero && <AppealLetterPanel case_={c} runState={runState} />}
+
+          {/* Rich stage-by-stage detail (data sourced from case Excel workbooks) */}
+          {stageDetail && (
+            <section className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold uppercase tracking-[0.16em] text-orange-200/90">
+                  Stage detail · {STAGE_TITLE[selectedStage]}
+                </h3>
+                <span className="text-[10px] uppercase tracking-wider text-white/40">
+                  Sourced from {c.shortTitle} sample workbook
+                </span>
+              </div>
+              <StageDetailPanel detail={stageDetail} />
+            </section>
+          )}
         </div>
 
         {/* Right: orchestration */}

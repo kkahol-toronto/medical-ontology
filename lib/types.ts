@@ -175,6 +175,130 @@ export interface StageData {
   exception?: { reason: string; resolution: string };
 }
 
+// ===========================================================================
+// Rich stage-detail content (rendered in the Agent Work Surface, below the
+// summary widget). Each stage is a list of typed "sections" that the
+// StageDetailPanel renders polymorphically.
+// ===========================================================================
+
+export type CalloutTone = 'info' | 'warn' | 'success' | 'danger';
+
+export interface KpiItem {
+  label: string;
+  value: string;
+  sub?: string;
+}
+
+export interface KeyValueRow {
+  label: string;
+  value: string;
+  emphasis?: boolean;
+}
+
+export interface TimelineItem {
+  date: string;
+  label: string;
+  agent?: string;
+  detail?: string;
+  status?: 'success' | 'fail' | 'progress' | 'info';
+  ms?: number;
+}
+
+export interface CdiQuery {
+  id: string;
+  question: string;
+  options: string[];
+  rationale: string;
+  status?: 'pending' | 'answered' | 'resolved';
+  physician?: string;
+}
+
+export interface CodingItem {
+  code: string;
+  description: string;
+  sourceText: string;
+  confidence: number;
+  type?: string;
+  modifier?: string;
+  editable?: boolean;
+  status?: 'AI-coded' | 'CDI-flagged' | 'Final';
+}
+
+export interface MedRecordSection {
+  heading: string;
+  body: string;
+  flags?: string[];
+}
+
+export interface ArPriorityRow {
+  account: string;
+  patient: string;
+  payer: string;
+  balance: number;
+  daysAR: number;
+  propensity: number;
+  recommendedAction: string;
+  paymentPlan?: string;
+}
+
+export type StageSection =
+  | { kind: 'kpis'; items: KpiItem[] }
+  | { kind: 'keyValues'; title?: string; rows: KeyValueRow[] }
+  | { kind: 'table'; title?: string; columns: string[]; rows: (string | number)[][]; footer?: string }
+  | { kind: 'timeline'; title?: string; events: TimelineItem[] }
+  | { kind: 'edi'; title?: string; transaction?: string; segments: string[] }
+  | { kind: 'json'; title?: string; payload: unknown }
+  | { kind: 'medicalRecord'; title?: string; sections: MedRecordSection[] }
+  | { kind: 'cdiQueries'; title?: string; queries: CdiQuery[] }
+  | { kind: 'coding'; title?: string; codes: CodingItem[] }
+  | { kind: 'policyCitation'; title?: string; source: string; quote: string; pageRef?: string }
+  | { kind: 'callout'; tone: CalloutTone; title: string; body: string }
+  | { kind: 'arPriority'; title?: string; rows: ArPriorityRow[] };
+
+export interface StageDetail {
+  stageId: StageId;
+  intro?: string;
+  sections: StageSection[];
+}
+
+// ===========================================================================
+// Patient Summary (top-level summary view per case, mirrors the Patient
+// Summary tab in each Excel workbook).
+// ===========================================================================
+
+export interface PatientSummary {
+  hero: { headline: string; subhead: string };
+  demographics: KeyValueRow[];
+  insurance: KeyValueRow[];
+  encounter: KeyValueRow[];
+  clinical?: KeyValueRow[];
+  agentSummary: { agent: string; bullets: string[] }[];
+  finalOutcome: KeyValueRow[];
+}
+
+// ===========================================================================
+// Analytics dashboard (per-case + cross-portfolio rollup).
+// ===========================================================================
+
+export interface AnalyticsBenchmark {
+  metric: string;
+  thisCase: string;
+  aiBenchmark: string;
+  industryAvg: string;
+  delta: string;
+  notes?: string;
+}
+
+export interface AnalyticsBundle {
+  topMetrics: KpiItem[];
+  endToEndTimeline: TimelineItem[];
+  benchmarks: AnalyticsBenchmark[];
+  payerBreakdown?: { payer: string; submitted: number; paid: number; denialRate: number; avgDaysAR: number; collectionRate: number }[];
+  arAging?: { bucket: string; count: number; balance: number }[];
+  denialDistribution?: { category: string; count: number; pct: number; recoverable: number }[];
+  topDenialRootCauses?: { rank: number; cause: string; pct: number; recommendation: string }[];
+}
+
 export interface RcmCase {
   id: CaseId;
   title: string;
@@ -195,4 +319,8 @@ export interface RcmCase {
   timeline: TimelineEvent[];
   kpis: KpiSet;
   stages: Record<StageId, StageData>;
+  // New: rich stage-by-stage detail rendered in the work surface.
+  stageDetails?: Partial<Record<StageId, StageDetail>>;
+  patientSummary?: PatientSummary;
+  analytics?: AnalyticsBundle;
 }

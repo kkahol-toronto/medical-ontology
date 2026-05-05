@@ -1,4 +1,9 @@
 import type { RcmCase } from '@/lib/types';
+import {
+  inpatientAnalytics,
+  inpatientPatientSummary,
+  inpatientStageDetails,
+} from './inpatient-details';
 
 export const inpatientCase: RcmCase = {
   id: 'inpatient',
@@ -122,4 +127,7 @@ export const inpatientCase: RcmCase = {
     denial: { id: 'denial', name: 'Denial Management', mode: 'AUTO', agentName: 'Denial Mgmt Agent', inputs: [{ label: 'Denials', value: '2 minor (CO-4, N30)' }], reasoning: [{ text: 'Both auto-classified as technical/administrative — auto-correctable' }, { text: 'AI patched modifier and NPI; resubmitted same day' }, { text: 'Both reversed within 3 days, $3,334 recovered' }], outputs: [{ label: 'Net denials', value: '$0', emphasis: true }] },
     payment: { id: 'payment', name: 'Payment & Collections', mode: 'AUTO', agentName: 'Payment Agent', inputs: [{ label: 'EFT', value: '$22,848.32 from Medicare 04/01' }], reasoning: [{ text: 'Auto-posted; Plan G secondary cleared 0% patient resp' }], outputs: [{ label: 'Patient balance', value: '$0 — fully reconciled', emphasis: true }] },
   },
+  stageDetails: inpatientStageDetails,
+  patientSummary: inpatientPatientSummary,
+  analytics: inpatientAnalytics,
 };

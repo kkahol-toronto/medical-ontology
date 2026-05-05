@@ -1,4 +1,9 @@
 import type { RcmCase } from '@/lib/types';
+import {
+  oncologyAnalytics,
+  oncologyPatientSummary,
+  oncologyStageDetails,
+} from './oncology-details';
 
 export const oncologyCase: RcmCase = {
   id: 'oncology',
@@ -298,4 +303,7 @@ export const oncologyCase: RcmCase = {
       ],
     },
   },
+  stageDetails: oncologyStageDetails,
+  patientSummary: oncologyPatientSummary,
+  analytics: oncologyAnalytics,
 };

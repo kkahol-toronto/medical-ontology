@@ -1,4 +1,9 @@
 import type { RcmCase } from '@/lib/types';
+import {
+  ascAnalytics,
+  ascPatientSummary,
+  ascStageDetails,
+} from './asc-details';
 
 export const ascCase: RcmCase = {
   id: 'asc',
@@ -114,4 +119,7 @@ export const ascCase: RcmCase = {
     denial: { id: 'denial', name: 'Denial Management', mode: 'AUTO', agentName: 'Denial Mgmt Agent', inputs: [{ label: 'Denials', value: 'NONE — 5 pre-bill preventions' }], reasoning: [{ text: 'Pre-bill: Mod 51 added, DX pointers mapped, POS 24 verified, NPI confirmed, no duplicates' }, { text: 'Estimated $18,740 in potential denials prevented' }], outputs: [{ label: 'Denial rate', value: '0% (100% prevention)', emphasis: true }] },
     payment: { id: 'payment', name: 'Payment & Collections', mode: 'AUTO', agentName: 'Payment Agent', inputs: [{ label: 'EFT', value: '$9,122.40 from BCBS 04/16' }], reasoning: [{ text: 'Auto-matched 835 to claim' }, { text: 'Patient balance $444.48 — statement queued + payment plan offered' }], outputs: [{ label: 'A/R days', value: '8 days', emphasis: true }, { label: 'Patient balance', value: '$444.48' }] },
   },
+  stageDetails: ascStageDetails,
+  patientSummary: ascPatientSummary,
+  analytics: ascAnalytics,
 };
