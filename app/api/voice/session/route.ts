@@ -30,11 +30,18 @@ export async function GET() {
   const url = new URL(endpoint);
   const host = url.host;
   const projectPath = url.pathname.replace(/\/$/, '');
-  // Azure Voice Live WebSocket URL — the realtime endpoint sits under
-  // /voice-live/realtime on the resource host.
+  // Azure Voice Live WebSocket URL. Browser WebSocket API can't set custom
+  // headers, so the api-key MUST go in the query string. Azure accepts
+  // either `api-key=...` or `?Ocp-Apim-Subscription-Key=...`; we use the
+  // canonical AI Foundry form below.
+  const qs = new URLSearchParams({
+    'api-version': apiVersion,
+    model,
+    'api-key': key,
+  });
   const wssBase = `wss://${host}/voice-live/realtime`;
-  const wssUrl = `${wssBase}?api-version=${encodeURIComponent(apiVersion)}&model=${encodeURIComponent(model)}`;
-  const altWssUrl = `wss://${host}${projectPath}/voice-live/realtime?api-version=${encodeURIComponent(apiVersion)}&model=${encodeURIComponent(model)}`;
+  const wssUrl = `${wssBase}?${qs.toString()}`;
+  const altWssUrl = `wss://${host}${projectPath}/voice-live/realtime?${qs.toString()}`;
 
   return NextResponse.json({
     ok: true,

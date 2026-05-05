@@ -82,10 +82,13 @@ export class AzureVoiceClient {
   private openSocket(primary: string, fallback?: string) {
     return new Promise<void>((resolve, reject) => {
       const tryOnce = (url: string, isFallback: boolean) => {
-        const proto = `openai-insecure-api-key.${this.cfg!.apiKey}`;
+        // Azure Voice Live authenticates via `api-key` query param baked
+        // into the URL by /api/voice/session — no auth subprotocol needed.
+        // We still negotiate the `realtime` subprotocol so the server
+        // recognises us as a Realtime client.
         let ws: WebSocket;
         try {
-          ws = new WebSocket(url, [proto, 'realtime']);
+          ws = new WebSocket(url, ['realtime']);
         } catch (e) {
           reject(e);
           return;
@@ -99,18 +102,27 @@ export class AzureVoiceClient {
           this.events.onStatusChange('ready');
           resolve();
         };
+        let lastCloseInfo = '';
         ws.onerror = () => {
           if (!opened && !isFallback && fallback) {
             tryOnce(fallback, true);
           } else if (!opened) {
             this.events.onStatusChange('error');
+            const detail = lastCloseInfo
+              ? ` (${lastCloseInfo})`
+              : '';
             this.events.onError(
-              'WebSocket connection to Azure Voice Live failed.',
+              `Voice agent could not connect${detail}. Try Type mode while we look at the Azure config.`,
             );
-            reject(new Error('ws connect failed'));
+            reject(new Error('ws connect failed' + detail));
           }
         };
-        ws.onclose = () => {
+        ws.onclose = (evt) => {
+          // Capture close code/reason for diagnostics. 1006 = abnormal close
+          // (handshake failed); 1008 / 4xx-style codes usually mean auth.
+          if (!opened) {
+            lastCloseInfo = `code ${evt.code}${evt.reason ? `: ${evt.reason}` : ''}`;
+          }
           if (this.listening) this.stopListening();
           this.events.onStatusChange('idle');
         };
