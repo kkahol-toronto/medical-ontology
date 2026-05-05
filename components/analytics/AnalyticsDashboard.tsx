@@ -90,6 +90,41 @@ const DENIAL_REIMBURSEMENT_LIKELIHOOD = [
   { bucket: 'Low (<40%)', count: 88 },
 ];
 
+// Aging distribution split per dimension — open AR balance broken into 5 buckets
+const AGING_BY_PAYER = [
+  { name: 'Aetna PPO',      d0_30: 412000, d31_60: 184000, d61_90: 92000,  d91_120: 41000, d120: 18000 },
+  { name: 'United HC',      d0_30: 318000, d31_60: 162000, d61_90: 88000,  d91_120: 47000, d120: 24000 },
+  { name: 'Medicare',       d0_30: 248000, d31_60: 92000,  d61_90: 38000,  d91_120: 14000, d120: 6000  },
+  { name: 'Cigna',          d0_30: 156000, d31_60: 78000,  d61_90: 42000,  d91_120: 19000, d120: 11000 },
+  { name: 'BCBS-TX',        d0_30: 92000,  d31_60: 48000,  d61_90: 21000,  d91_120: 9000,  d120: 4000  },
+  { name: 'Humana',         d0_30: 58000,  d31_60: 28000,  d61_90: 14000,  d91_120: 6000,  d120: 2000  },
+];
+
+const AGING_BY_SPECIALTY = [
+  { name: 'Oncology',         d0_30: 384000, d31_60: 218000, d61_90: 124000, d91_120: 68000, d120: 32000 },
+  { name: 'Orthopedics',      d0_30: 248000, d31_60: 96000,  d61_90: 41000,  d91_120: 18000, d120: 7000  },
+  { name: 'Cardiology',       d0_30: 218000, d31_60: 112000, d61_90: 58000,  d91_120: 27000, d120: 14000 },
+  { name: 'Behavioral Hlth',  d0_30: 128000, d31_60: 92000,  d61_90: 48000,  d91_120: 32000, d120: 21000 },
+  { name: 'General Surgery',  d0_30: 184000, d31_60: 78000,  d61_90: 32000,  d91_120: 12000, d120: 5000  },
+  { name: 'ASC',              d0_30: 122000, d31_60: 46000,  d61_90: 15000,  d91_120: 6000,  d120: 2000  },
+];
+
+const AGING_BY_CLAIM_TYPE = [
+  { name: 'Inpatient (837I)',  d0_30: 484000, d31_60: 218000, d61_90: 112000, d91_120: 64000, d120: 28000 },
+  { name: 'Outpatient (837P)', d0_30: 412000, d31_60: 192000, d61_90: 98000,  d91_120: 48000, d120: 22000 },
+  { name: 'Professional',      d0_30: 248000, d31_60: 138000, d61_90: 72000,  d91_120: 38000, d120: 18000 },
+  { name: 'ASC',               d0_30: 142000, d31_60: 48000,  d61_90: 14000,  d91_120: 6000,  d120: 2000  },
+];
+
+const DENIAL_BY_SPECIALTY_CHART = [
+  { specialty: 'Oncology',         rate: 0.24, dollars: 91240 },
+  { specialty: 'Behavioral Hlth',  rate: 0.18, dollars: 27319 },
+  { specialty: 'Cardiology',       rate: 0.11, dollars: 38128 },
+  { specialty: 'General Surgery',  rate: 0.09, dollars: 18203 },
+  { specialty: 'Orthopedics',      rate: 0.07, dollars: 12414 },
+  { specialty: 'ASC',              rate: 0.04, dollars: 7128  },
+];
+
 const TOP_DENIAL_ROOT_CAUSES = [
   { rank: 1, cause: 'CO-50 — Documentation gap (med necessity)', pct: 28.4, recommendation: 'Auto-attach NCCN/InterQual cite + MD attestation on first PA submission' },
   { rank: 2, cause: 'CO-197 — Pre-cert/auth absent or invalid', pct: 18.2, recommendation: 'Run AI Auth Engine 5-source live probe on every CPT before scheduling' },
@@ -251,8 +286,8 @@ export function AnalyticsDashboard({ cases }: Props) {
 
         <GlassCard className="space-y-4 p-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-white">Open AR by health plan, specialty, claim type</h2>
-            <span className="text-[10px] uppercase tracking-wider text-white/45">drill-through</span>
+            <h2 className="text-lg font-semibold text-white">Open AR composition</h2>
+            <span className="text-[10px] uppercase tracking-wider text-white/45">$ by aging bucket</span>
           </div>
           <div className="grid gap-3 sm:grid-cols-3">
             <MiniBar
@@ -271,16 +306,38 @@ export function AnalyticsDashboard({ cases }: Props) {
         </GlassCard>
       </div>
 
-      {/* Denial analytics */}
+      {/* AR aging distribution per dimension — stacked breakdown */}
       <GlassCard className="space-y-5 p-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-white">Denial analytics</h2>
+          <h2 className="text-lg font-semibold text-white">
+            Open AR aging distribution — by health plan, specialty, claim type
+          </h2>
+          <span className="text-[10px] uppercase tracking-wider text-white/45">
+            stacked $ across 0–30 / 31–60 / 61–90 / 91–120 / 120+
+          </span>
+        </div>
+        <div className="grid gap-6 lg:grid-cols-3">
+          <StackedAgingChart title="By health plan" data={AGING_BY_PAYER} />
+          <StackedAgingChart title="By specialty" data={AGING_BY_SPECIALTY} />
+          <StackedAgingChart title="By claim type" data={AGING_BY_CLAIM_TYPE} />
+        </div>
+        <div className="text-[11px] text-white/55">
+          Each bar segments open AR into aging buckets so you can spot dimensions where dollars are aging out
+          of net-revenue-realizable windows. Oncology and Behavioral Health concentrate the most 90+ day risk
+          and are auto-routed to the AI AR Follow-Up Agent.
+        </div>
+      </GlassCard>
+
+      {/* Denial analytics — distribution by health plan / specialty / claim type */}
+      <GlassCard className="space-y-5 p-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-white">Denial rate distribution</h2>
           <ShieldAlert className="h-4 w-4 text-orange-300" />
         </div>
         <div className="grid gap-6 lg:grid-cols-3">
           <div>
             <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-white/55">
-              Denial rate by health plan
+              By health plan
             </h3>
             <div style={{ width: '100%', height: 220 }}>
               <ResponsiveContainer>
@@ -299,6 +356,57 @@ export function AnalyticsDashboard({ cases }: Props) {
             </div>
           </div>
 
+          <div>
+            <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-white/55">
+              By specialty
+            </h3>
+            <div style={{ width: '100%', height: 220 }}>
+              <ResponsiveContainer>
+                <BarChart data={DENIAL_BY_SPECIALTY_CHART} layout="vertical">
+                  <CartesianGrid stroke="rgba(255,255,255,0.06)" strokeDasharray="3 3" />
+                  <XAxis type="number" stroke="rgba(255,255,255,0.5)" fontSize={10} tickFormatter={(v: number) => `${(v * 100).toFixed(0)}%`} />
+                  <YAxis type="category" dataKey="specialty" stroke="rgba(255,255,255,0.5)" fontSize={10} width={92} />
+                  <Tooltip
+                    formatter={(v: number) => `${(v * 100).toFixed(1)}%`}
+                    contentStyle={{ background: '#0b1736', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 8 }}
+                    labelStyle={{ color: 'white' }}
+                  />
+                  <Bar dataKey="rate" fill="#a855f7" radius={[0, 6, 6, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-white/55">
+              By claim type
+            </h3>
+            <div style={{ width: '100%', height: 220 }}>
+              <ResponsiveContainer>
+                <BarChart data={DENIAL_BY_CLAIM_TYPE} layout="vertical">
+                  <CartesianGrid stroke="rgba(255,255,255,0.06)" strokeDasharray="3 3" />
+                  <XAxis type="number" stroke="rgba(255,255,255,0.5)" fontSize={10} tickFormatter={(v: number) => `${(v * 100).toFixed(0)}%`} />
+                  <YAxis type="category" dataKey="type" stroke="rgba(255,255,255,0.5)" fontSize={10} width={110} />
+                  <Tooltip
+                    formatter={(v: number) => `${(v * 100).toFixed(1)}%`}
+                    contentStyle={{ background: '#0b1736', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 8 }}
+                    labelStyle={{ color: 'white' }}
+                  />
+                  <Bar dataKey="rate" fill="#06b6d4" radius={[0, 6, 6, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+      </GlassCard>
+
+      {/* Denial composition — coding vs non-coding + reimbursement likelihood */}
+      <GlassCard className="space-y-5 p-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-white">Denial composition & recovery likelihood</h2>
+          <ShieldAlert className="h-4 w-4 text-orange-300" />
+        </div>
+        <div className="grid gap-6 lg:grid-cols-2">
           <div>
             <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-white/55">
               Coding vs non-coding denials
@@ -515,6 +623,45 @@ function MiniBar({
             </div>
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+interface AgingRow {
+  name: string;
+  d0_30: number;
+  d31_60: number;
+  d61_90: number;
+  d91_120: number;
+  d120: number;
+}
+
+function StackedAgingChart({ title, data }: { title: string; data: AgingRow[] }) {
+  return (
+    <div>
+      <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-white/55">
+        {title}
+      </h3>
+      <div style={{ width: '100%', height: 240 }}>
+        <ResponsiveContainer>
+          <BarChart data={data} layout="vertical" stackOffset="expand">
+            <CartesianGrid stroke="rgba(255,255,255,0.06)" strokeDasharray="3 3" />
+            <XAxis type="number" stroke="rgba(255,255,255,0.5)" fontSize={9} tickFormatter={(v: number) => `${(v * 100).toFixed(0)}%`} />
+            <YAxis type="category" dataKey="name" stroke="rgba(255,255,255,0.5)" fontSize={10} width={92} />
+            <Tooltip
+              formatter={(v: number) => formatCurrency(v)}
+              contentStyle={{ background: '#0b1736', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 8 }}
+              labelStyle={{ color: 'white' }}
+            />
+            <Legend wrapperStyle={{ fontSize: 10, color: 'white' }} />
+            <Bar dataKey="d0_30"   name="0-30"    stackId="a" fill="#22c55e" />
+            <Bar dataKey="d31_60"  name="31-60"   stackId="a" fill="#3b82f6" />
+            <Bar dataKey="d61_90"  name="61-90"   stackId="a" fill="#f59e0b" />
+            <Bar dataKey="d91_120" name="91-120"  stackId="a" fill="#fb7185" />
+            <Bar dataKey="d120"    name="120+"    stackId="a" fill="#ef4444" />
+          </BarChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );
