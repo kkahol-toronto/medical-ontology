@@ -24,20 +24,22 @@ export function bedrockClient() {
   return _client;
 }
 
+// Opus 4.6 is the default because the demo account has model access
+// granted for it. Opus 4.7 is in the fallback list — if/when access is
+// granted in the Bedrock console it'll get picked up automatically.
 export const DEFAULT_MODEL_ID =
-  process.env.BEDROCK_MODEL_ID ?? 'eu.anthropic.claude-opus-4-7';
+  process.env.BEDROCK_MODEL_ID ?? 'eu.anthropic.claude-opus-4-6-v1';
 
 /**
  * If the primary model is throttled or rejected we automatically retry
  * down this list. All of these are Anthropic flagship-tier in eu-west-1
- * cross-region inference profiles. Opus 4.7 has very tight TPM quotas
- * on first activation — Opus 4.6 / Sonnet 4.6 are excellent fallbacks
- * for letter drafting at far higher throughput.
+ * cross-region inference profiles.
  */
 export const FALLBACK_MODEL_IDS = [
-  'eu.anthropic.claude-opus-4-6-v1',
+  'eu.anthropic.claude-opus-4-7',
   'eu.anthropic.claude-sonnet-4-6',
   'eu.anthropic.claude-sonnet-4-5-20250929-v1:0',
+  'eu.anthropic.claude-haiku-4-5-20251001-v1:0',
 ];
 
 const RETRYABLE_ERROR_PATTERNS = [
@@ -45,12 +47,39 @@ const RETRYABLE_ERROR_PATTERNS = [
   /throttl/i,
   /rate.?limit/i,
   /quota/i,
+  // Account doesn't have model access granted in Bedrock console — slide
+  // down to a model the account *does* have access to. Without these,
+  // a fresh AWS account that hasn't enabled Opus 4.7 sees a hard failure
+  // instead of a graceful fall-back to Opus 4.6 / Sonnet.
+  /not available/i,
+  /access ?denied/i,
+  /accessdenied/i,
+  /not authorized/i,
+  /you don't have access/i,
 ];
 
 function isRetryable(err: unknown): boolean {
   const msg = (err as Error)?.message ?? '';
+  // AWS SDK exposes the error code on err.name (e.g. AccessDeniedException,
+  // ValidationException, ThrottlingException). Match on both.
+  const name = (err as { name?: string })?.name ?? '';
+  if (name === 'AccessDeniedException' || name === 'ThrottlingException') return true;
   return RETRYABLE_ERROR_PATTERNS.some((re) => re.test(msg));
 }
+
+function isPermanentAccessError(err: unknown): boolean {
+  const name = (err as { name?: string })?.name ?? '';
+  if (name === 'AccessDeniedException') return true;
+  const msg = (err as Error)?.message ?? '';
+  return /not available|access ?denied|accessdenied|not authorized|don't have access/i.test(msg);
+}
+
+/**
+ * In-memory cache of model IDs that returned AccessDenied in this Lambda
+ * warm cycle. We skip them on subsequent requests so we don't waste 1-2s
+ * on every chat hitting a model the account doesn't have access to.
+ */
+const ACCESS_DENIED_MODELS = new Set<string>();
 
 export interface ClaudeMessage {
   role: 'user' | 'assistant';
@@ -123,10 +152,16 @@ async function* streamSingleModel(
 export async function* streamClaude(
   args: StreamClaudeOptions,
 ): AsyncIterable<string> {
+  const requested = args.modelId ?? DEFAULT_MODEL_ID;
   const candidates = [
-    args.modelId ?? DEFAULT_MODEL_ID,
-    ...FALLBACK_MODEL_IDS.filter((m) => m !== (args.modelId ?? DEFAULT_MODEL_ID)),
-  ];
+    requested,
+    ...FALLBACK_MODEL_IDS.filter((m) => m !== requested),
+  ].filter((m) => !ACCESS_DENIED_MODELS.has(m));
+  if (candidates.length === 0) {
+    throw new Error(
+      'No accessible Bedrock models. Enable model access in the Bedrock console (Foundation models → Model access).',
+    );
+  }
   let lastErr: unknown = null;
   for (const modelId of candidates) {
     const iterable = streamSingleModel(modelId, args);
@@ -146,6 +181,11 @@ export async function* streamClaude(
       }
     } catch (err) {
       lastErr = err;
+      if (isPermanentAccessError(err)) {
+        // Don't burn time on this model again for the rest of the
+        // Lambda warm cycle.
+        ACCESS_DENIED_MODELS.add(modelId);
+      }
       if (!isRetryable(err)) throw err;
       continue;
     }
