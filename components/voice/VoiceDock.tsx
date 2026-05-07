@@ -14,12 +14,14 @@ import {
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { GlassButton } from '@/components/glass/GlassButton';
+import { LanguageSelect } from '@/components/voice/LanguageSelect';
 import { Waveform } from '@/components/voice/Waveform';
 import {
   AzureVoiceClient,
   type VoiceClientStatus,
   type VoiceSessionConfig,
 } from '@/lib/voice/azure-client';
+import { DEFAULT_LANGUAGE_CODE } from '@/lib/voice/languages';
 import { cn } from '@/lib/utils';
 
 interface Bubble {
@@ -44,6 +46,7 @@ export function VoiceDock() {
   const [textBusy, setTextBusy] = useState(false);
   const [toolCalls, setToolCalls] = useState<string[]>([]);
   const [voiceConfigured, setVoiceConfigured] = useState<boolean | null>(null);
+  const [language, setLanguage] = useState<string | null>(DEFAULT_LANGUAGE_CODE);
   const clientRef = useRef<AzureVoiceClient | null>(null);
   const cfgRef = useRef<VoiceSessionConfig | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -167,12 +170,22 @@ export function VoiceDock() {
         },
       });
       clientRef.current = client;
+      // Apply the user's language pick before opening the socket so the
+      // very first session.update Azure receives already has the right
+      // pin — no re-roll on first turn.
+      client.setLanguage(language);
       await client.connect(cfg);
     } catch (e) {
       setError((e as Error).message ?? 'failed to start voice');
       setStatus('error');
     }
   }
+
+  // Push language changes to the live client. Safe to call mid-session;
+  // the client re-issues a session.update.
+  useEffect(() => {
+    clientRef.current?.setLanguage(language);
+  }, [language]);
 
   async function toggleListen() {
     if (!clientRef.current) return;
@@ -352,14 +365,17 @@ export function VoiceDock() {
                   </div>
                 </div>
               </div>
-              <button
-                type="button"
-                aria-label="Close"
-                onClick={close}
-                className="text-white/55 hover:text-white"
-              >
-                <X className="h-4 w-4" />
-              </button>
+              <div className="flex items-center gap-2">
+                <LanguageSelect value={language} onChange={setLanguage} />
+                <button
+                  type="button"
+                  aria-label="Close"
+                  onClick={close}
+                  className="text-white/55 hover:text-white"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
             </div>
 
             {/* Mode tabs */}
@@ -499,7 +515,17 @@ export function VoiceDock() {
                 <input
                   type="text"
                   value={textInput}
-                  onChange={(e) => setTextInput(e.target.value)}
+                  onChange={(e) => {
+                    // Typing-as-interruption: the moment the user starts
+                    // typing while NIRA is speaking, cut her off.
+                    if (
+                      e.target.value.length > textInput.length &&
+                      (status === 'speaking' || status === 'thinking')
+                    ) {
+                      clientRef.current?.bargeIn();
+                    }
+                    setTextInput(e.target.value);
+                  }}
                   placeholder="Ask anything about the cases…"
                   disabled={textBusy}
                   className="flex-1 rounded-xl bg-black/30 px-3 py-2 text-sm text-white placeholder:text-white/35 ring-1 ring-white/10 focus:outline-none focus:ring-orange-400/50"
