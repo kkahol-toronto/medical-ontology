@@ -3,15 +3,38 @@ node_modules
 out
 dist
 build
+
+# Environment / secrets
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
+
+# Build / framework caches
 *.tsbuildinfo
 next-env.d.ts
-.DS_Store
 .vercel
 .cache
 .turbo
+coverage/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Cert / key material
+*.pem
+*.key
+*.p12
+*.pfx
 
 # Generated case JSON fixtures (the .ts source-of-truth IS committed)
 data/cases/*.json
