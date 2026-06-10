@@ -16,6 +16,7 @@ import {
   UserPlus,
 } from 'lucide-react';
 import type { ComponentType } from 'react';
+import { OntologyLinkButton } from '@/components/ontology/ReasoningOntologyGraph';
 import { STAGE_NUMBER, STAGE_ORDER, STAGE_TITLE } from '@/data/cases';
 import type { RunnerState } from '@/lib/agents/runner';
 import type { RcmCase, StageId } from '@/lib/types';
@@ -38,6 +39,7 @@ interface Props {
   state: RunnerState;
   onSelectStage: (stage: StageId) => void;
   selectedStage: StageId;
+  onOpenStageOntology: (stage: StageId) => void;
 }
 
 export function StageTimeline({
@@ -45,6 +47,7 @@ export function StageTimeline({
   state,
   onSelectStage,
   selectedStage,
+  onOpenStageOntology,
 }: Props) {
   return (
     <div className="space-y-2">
@@ -54,17 +57,20 @@ export function StageTimeline({
         const status = state.stages[id].status;
         const isSelected = selectedStage === id;
         return (
-          <button
+          <div
             key={id}
-            type="button"
-            onClick={() => onSelectStage(id)}
             className={cn(
-              'group relative flex w-full items-start gap-3 rounded-xl p-3 text-left transition-all',
+              'group relative flex w-full items-start rounded-xl transition-all',
               isSelected
                 ? 'bg-white/[0.08] ring-1 ring-orange-400/40'
                 : 'hover:bg-white/[0.04]',
             )}
           >
+            <button
+              type="button"
+              onClick={() => onSelectStage(id)}
+              className="flex min-w-0 flex-1 items-start gap-3 p-3 pr-1 text-left"
+            >
             <div className="relative shrink-0">
               <div
                 className={cn(
@@ -130,13 +136,21 @@ export function StageTimeline({
                 {stage.agentName}
               </div>
             </div>
+            </button>
+            <div className="flex shrink-0 items-start pt-3 pr-2">
+              <OntologyLinkButton
+                compact
+                label="Graph"
+                onClick={() => onOpenStageOntology(id)}
+              />
+            </div>
             {status === 'running' && (
               <motion.span
                 layoutId="active-pill"
                 className="absolute -left-1.5 top-1/2 h-2 w-2 -translate-y-1/2 rounded-full bg-orange-400 shadow-[0_0_8px_rgb(255_122_26_/_0.7)]"
               />
             )}
-          </button>
+          </div>
         );
       })}
     </div>

@@ -1,9 +1,22 @@
 'use client';
 
-import { FileSearch, Pause, Play, RotateCcw, SkipForward, Sparkles, User } from 'lucide-react';
+import {
+  FileSearch,
+  Network,
+  Pause,
+  Play,
+  RotateCcw,
+  SkipForward,
+  Sparkles,
+  User,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { AgentWorkSurface } from '@/components/AgentWorkSurface';
+import {
+  CaseOntologyModal,
+  StageOntologyModal,
+} from '@/components/ontology/ReasoningOntologyGraph';
 import { AppealLetterPanel } from '@/components/AppealLetterPanel';
 import { ComprehendMedicalPanel } from '@/components/ComprehendMedicalPanel';
 import { GlassButton } from '@/components/glass/GlassButton';
@@ -17,9 +30,18 @@ import type { RcmCase, StageId } from '@/lib/types';
 
 export function CaseConsole({ case: c }: { case: RcmCase }) {
   const [selectedStage, setSelectedStage] = useState<StageId>('registration');
+  const [caseOntologyOpen, setCaseOntologyOpen] = useState(false);
+  const [timelineOntologyStage, setTimelineOntologyStage] =
+    useState<StageId | null>(null);
   const { state, runStage, runAll, runNext, reset } = useAgentRunner(c);
   const stage = c.stages[selectedStage];
   const runState = state.stages[selectedStage];
+  const timelineStage = timelineOntologyStage
+    ? c.stages[timelineOntologyStage]
+    : null;
+  const timelineRunState = timelineOntologyStage
+    ? state.stages[timelineOntologyStage]
+    : null;
 
   const isHero = c.id === 'oncology' && selectedStage === 'denial';
   const isCdi = selectedStage === 'cdi';
@@ -49,6 +71,14 @@ export function CaseConsole({ case: c }: { case: RcmCase }) {
               Analytics
             </GlassButton>
           </Link>
+          <GlassButton
+            variant="ghost"
+            size="md"
+            onClick={() => setCaseOntologyOpen(true)}
+          >
+            <Network className="h-4 w-4" />
+            Case ontology
+          </GlassButton>
           <GlassButton
             variant="primary"
             size="md"
@@ -106,6 +136,9 @@ export function CaseConsole({ case: c }: { case: RcmCase }) {
             state={state}
             onSelectStage={setSelectedStage}
             selectedStage={selectedStage}
+            onOpenStageOntology={(id) => {
+              setTimelineOntologyStage(id);
+            }}
           />
         </GlassCard>
 
@@ -161,6 +194,31 @@ export function CaseConsole({ case: c }: { case: RcmCase }) {
         {/* Right: orchestration */}
         <OrchestrationRail case_={c} state={state} />
       </div>
+
+      <CaseOntologyModal
+        open={caseOntologyOpen}
+        onClose={() => setCaseOntologyOpen(false)}
+        case_={c}
+        highlightStage={selectedStage}
+      />
+
+      {timelineStage && timelineRunState && timelineOntologyStage && (
+        <StageOntologyModal
+          open={timelineOntologyStage !== null}
+          onClose={() => setTimelineOntologyStage(null)}
+          stage={timelineStage}
+          visibleStepCount={Math.max(
+            timelineRunState.currentStepIndex,
+            timelineStage.reasoning.slice(0, timelineRunState.currentStepIndex)
+              .length,
+          )}
+          runStatus={timelineRunState.status}
+          isDone={
+            timelineRunState.status === 'done' ||
+            timelineRunState.status === 'exception'
+          }
+        />
+      )}
     </div>
   );
 }

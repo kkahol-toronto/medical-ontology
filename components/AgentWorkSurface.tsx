@@ -2,8 +2,15 @@
 
 import { AnimatePresence, motion } from 'framer-motion';
 import { CheckCircle2, ChevronRight, Loader2, Sparkles } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { GlassCard } from '@/components/glass/GlassCard';
+import {
+  OntologyLinkButton,
+  ReasoningOntologyOverlay,
+  StageOntologyModal,
+} from '@/components/ontology/ReasoningOntologyGraph';
 import type { StageRunState } from '@/lib/agents/runner';
+import { buildStageOntologyGraph } from '@/lib/ontology/stageOntologyGraph';
 import type { StageData } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
@@ -14,10 +21,26 @@ interface Props {
 }
 
 export function AgentWorkSurface({ stage, runState, rightSlot }: Props) {
+  const [showOntology, setShowOntology] = useState(false);
+  const [ontologyModalOpen, setOntologyModalOpen] = useState(false);
   const visibleSteps = stage.reasoning.slice(0, runState.currentStepIndex);
   const isRunning = runState.status === 'running';
   const isDone =
     runState.status === 'done' || runState.status === 'exception';
+  const visibleStepCount = Math.max(
+    runState.currentStepIndex,
+    visibleSteps.length,
+  );
+
+  const stageGraph = useMemo(
+    () =>
+      buildStageOntologyGraph(stage, {
+        visibleStepCount,
+        runStatus: runState.status,
+        isDone,
+      }),
+    [stage, visibleStepCount, runState.status, isDone],
+  );
 
   return (
     <GlassCard variant="strong" className="space-y-6 p-6 lg:p-8">
@@ -41,6 +64,7 @@ export function AgentWorkSurface({ stage, runState, rightSlot }: Props) {
         <div className="flex items-center gap-2">
           <ModeBadge mode={stage.mode} />
           <StatusBadge status={runState.status} />
+          <OntologyLinkButton onClick={() => setOntologyModalOpen(true)} />
         </div>
       </div>
 
@@ -59,7 +83,7 @@ export function AgentWorkSurface({ stage, runState, rightSlot }: Props) {
           </ul>
         </Panel>
 
-        {/* Reasoning trace */}
+        {/* Reasoning trace — hover reveals ontology subgraph */}
         <Panel
           title={
             <span className="flex items-center gap-2">
@@ -69,38 +93,63 @@ export function AgentWorkSurface({ stage, runState, rightSlot }: Props) {
           }
           accent
         >
-          <div className="min-h-[160px] space-y-2.5">
+          <div
+            className="relative min-h-[160px]"
+            onMouseEnter={() => setShowOntology(true)}
+            onMouseLeave={() => setShowOntology(false)}
+            onFocus={() => setShowOntology(true)}
+            onBlur={(e) => {
+              if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                setShowOntology(false);
+              }
+            }}
+            tabIndex={0}
+            role="region"
+            aria-label="Reasoning trace — hover for ontology preview"
+          >
+            <div
+              className={cn(
+                'space-y-2.5 pb-1 transition-opacity duration-200',
+                showOntology ? 'pointer-events-none opacity-15' : 'opacity-100',
+              )}
+            >
+              <AnimatePresence>
+                {visibleSteps.map((step, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex gap-2 text-sm"
+                  >
+                    <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-orange-400/80" />
+                    <div>
+                      <div className="text-white/90">{step.text}</div>
+                      {step.detail && (
+                        <div className="mt-1 rounded-md bg-black/20 px-2 py-1 font-mono text-[11px] leading-snug text-white/55">
+                          {step.detail}
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+              {isRunning && visibleSteps.length < stage.reasoning.length && (
+                <div className="flex items-center gap-2 text-sm text-blue-300/80">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>thinking…</span>
+                </div>
+              )}
+              {runState.status === 'queued' && (
+                <div className="text-sm text-white/40">
+                  Press <kbd className="rounded bg-white/10 px-1 text-xs">Run agent</kbd> to start.
+                </div>
+              )}
+            </div>
             <AnimatePresence>
-              {visibleSteps.map((step, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="flex gap-2 text-sm"
-                >
-                  <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-orange-400/80" />
-                  <div>
-                    <div className="text-white/90">{step.text}</div>
-                    {step.detail && (
-                      <div className="mt-1 rounded-md bg-black/20 px-2 py-1 font-mono text-[11px] leading-snug text-white/55">
-                        {step.detail}
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
-              ))}
+              {showOntology && (
+                <ReasoningOntologyOverlay graph={stageGraph} />
+              )}
             </AnimatePresence>
-            {isRunning && visibleSteps.length < stage.reasoning.length && (
-              <div className="flex items-center gap-2 text-sm text-blue-300/80">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span>thinking…</span>
-              </div>
-            )}
-            {runState.status === 'queued' && (
-              <div className="text-sm text-white/40">
-                Press <kbd className="rounded bg-white/10 px-1 text-xs">Run agent</kbd> to start.
-              </div>
-            )}
           </div>
         </Panel>
 
@@ -158,6 +207,15 @@ export function AgentWorkSurface({ stage, runState, rightSlot }: Props) {
       </div>
 
       {rightSlot}
+
+      <StageOntologyModal
+        open={ontologyModalOpen}
+        onClose={() => setOntologyModalOpen(false)}
+        stage={stage}
+        visibleStepCount={visibleStepCount}
+        runStatus={runState.status}
+        isDone={isDone}
+      />
     </GlassCard>
   );
 }
