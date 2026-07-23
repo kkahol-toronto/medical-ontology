@@ -1,12 +1,13 @@
 'use client';
 
-import { Activity, BarChart3, FileText, LayoutDashboard, Sparkles } from 'lucide-react';
+import { Activity, BarChart3, Brain, FileText, LayoutDashboard, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
 const items = [
   { href: '/', label: 'Operating Model', icon: LayoutDashboard },
+  { href: '/views/behavioral-health', label: 'Behavioral Health', icon: Brain },
   { href: '/views/analytics', label: 'Analytics', icon: BarChart3 },
   { href: '/views/ar-denials', label: 'AR / Denials', icon: Activity },
   { href: '/views/coding-him', label: 'Coding / HIM', icon: FileText },

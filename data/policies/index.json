@@ -46,5 +46,53 @@
     "pages": 2,
     "chars": 3884,
     "sourcePdf": "docs/payer_docs/payment_policies/Transabdominal-Transvaginal-Ultrasound-Payment-Policy-PDF-v2-ss2.pdf"
+  },
+  {
+    "slug": "bh-asam-loc",
+    "title": "ASAM Criteria · Level of Care Assessment Guide",
+    "citation": "ASAM LOC Assessment Guide v4.1",
+    "pages": 42,
+    "chars": 96430,
+    "sourcePdf": "docs/payer_docs/behavioral_health/asam_loc-assessment-guide_print_4.1.0.0.pdf"
+  },
+  {
+    "slug": "bh-locus-guide",
+    "title": "LOCUS · Level of Care Utilization System Guide",
+    "citation": "LOCUS Utilization System Guide",
+    "pages": 45,
+    "chars": 196,
+    "sourcePdf": "docs/payer_docs/behavioral_health/level-of-care-utilization-system-guide.pdf"
+  },
+  {
+    "slug": "bh-locus-handout",
+    "title": "LOCUS · Levels of Care Handout (AACP)",
+    "citation": "LOCUS Levels of Care Handout",
+    "pages": 13,
+    "chars": 32592,
+    "sourcePdf": "docs/payer_docs/behavioral_health/locus-levels-care-handout-aacp.pdf"
+  },
+  {
+    "slug": "bh-medical-necessity",
+    "title": "Behavioral Health · Medical Necessity Criteria",
+    "citation": "BH Medical Necessity Criteria",
+    "pages": 2,
+    "chars": 5709,
+    "sourcePdf": "docs/payer_docs/behavioral_health/Medical Necessity Criteria.pdf"
+  },
+  {
+    "slug": "bh-tn-acute-inpatient",
+    "title": "TN BH Guide · Acute Inpatient Hospital",
+    "citation": "TN-BH-Guide Acute Inpatient Hospital",
+    "pages": 5,
+    "chars": 10255,
+    "sourcePdf": "docs/payer_docs/behavioral_health/TN-BH-Guide-Acute-Inpatient-Hospital.pdf"
+  },
+  {
+    "slug": "bh-fs121115",
+    "title": "Behavioral Health · Facility Services Policy",
+    "citation": "BehavioralHealthFS121115",
+    "pages": 4,
+    "chars": 9949,
+    "sourcePdf": "docs/payer_docs/behavioral_health/BehavioralHealthFS121115.pdf"
   }
 ]

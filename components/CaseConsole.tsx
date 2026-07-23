@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+import { useState } from 'react';
 import {
   FileSearch,
   Network,
@@ -10,8 +12,6 @@ import {
   Sparkles,
   User,
 } from 'lucide-react';
-import Link from 'next/link';
-import { useState } from 'react';
 import { AgentWorkSurface } from '@/components/AgentWorkSurface';
 import {
   CaseOntologyModal,
@@ -28,8 +28,16 @@ import { STAGE_NUMBER, STAGE_TITLE } from '@/data/cases';
 import { useAgentRunner } from '@/lib/agents/runner';
 import type { RcmCase, StageId } from '@/lib/types';
 
-export function CaseConsole({ case: c }: { case: RcmCase }) {
-  const [selectedStage, setSelectedStage] = useState<StageId>('registration');
+export function CaseConsole({
+  case: c,
+  initialStage,
+}: {
+  case: RcmCase;
+  initialStage?: StageId;
+}) {
+  const [selectedStage, setSelectedStage] = useState<StageId>(
+    initialStage ?? 'registration',
+  );
   const [caseOntologyOpen, setCaseOntologyOpen] = useState(false);
   const [timelineOntologyStage, setTimelineOntologyStage] =
     useState<StageId | null>(null);
@@ -43,7 +51,8 @@ export function CaseConsole({ case: c }: { case: RcmCase }) {
     ? state.stages[timelineOntologyStage]
     : null;
 
-  const isHero = c.id === 'oncology' && selectedStage === 'denial';
+  const isHero =
+    (c.id === 'oncology' || c.id === 'behavioralHealth') && selectedStage === 'denial';
   const isCdi = selectedStage === 'cdi';
   const stageDetail = c.stageDetails?.[selectedStage];
 
@@ -79,6 +88,14 @@ export function CaseConsole({ case: c }: { case: RcmCase }) {
             <Network className="h-4 w-4" />
             Case ontology
           </GlassButton>
+          {c.id === 'behavioralHealth' && (
+            <Link href="/views/behavioral-health">
+              <GlassButton variant="ghost" size="md">
+                <Network className="h-4 w-4" />
+                Domain ontology
+              </GlassButton>
+            </Link>
+          )}
           <GlassButton
             variant="primary"
             size="md"

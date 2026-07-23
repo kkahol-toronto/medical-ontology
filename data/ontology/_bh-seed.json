@@ -1,0 +1,99 @@
+{
+  "generatedAt": "2026-07-23T03:10:37.566Z",
+  "sourceWorkbook": "docs/demo_workbooks/RCM_Behavioral_Health_Acute_Psychiatry_Denial_Appeal_Demo.xlsx",
+  "entityCount": 5,
+  "relationCount": 4,
+  "entities": [
+    {
+      "id": "bh_patient_jordan_ellis",
+      "label": "Jordan M. Ellis",
+      "category": "Patient",
+      "type": "BehavioralHealthPatient",
+      "summary": "38-year-old patient with severe MDD with psychotic features and active suicidal ideation; hero case for BH denial appeal demo.",
+      "attributes": {
+        "mrn": "MRN-64172890",
+        "dob": "1987-09-22",
+        "gender": "Non-binary"
+      },
+      "uuid": "c5c9baa8-ea65-42e0-8f0e-bc4381057f14"
+    },
+    {
+      "id": "bh_encounter_0417",
+      "label": "ENC-BH-2026-0417",
+      "category": "Encounter",
+      "type": "AcuteInpatientPsych",
+      "summary": "8-day acute inpatient psychiatry stay at Lakeshore Behavioral Health Center (05/06–05/14/2026).",
+      "attributes": {
+        "los": 8,
+        "admission": "2026-05-06",
+        "discharge": "2026-05-14"
+      },
+      "uuid": "b73222d0-77be-4b63-b6c6-1f214883a778"
+    },
+    {
+      "id": "bh_payer_uhc",
+      "label": "UnitedHealthcare Choice Plus PPO",
+      "category": "Payer",
+      "type": "CommercialPPO",
+      "summary": "Primary payer for Jordan M. Ellis; denied days 6–8 on CO-50 + BH-LOS-06; overturned on appeal.",
+      "attributes": {
+        "member_id": "UHC-CP-73492018",
+        "payer_id": "87726"
+      },
+      "uuid": "db9444c6-75b6-484b-9dd9-89d64be6870f"
+    },
+    {
+      "id": "bh_denial_co50",
+      "label": "CO-50 / BH-LOS-06",
+      "category": "Denial",
+      "type": "MedicalNecessityDenial",
+      "summary": "UnitedHealthcare denied days 6–8 ($10,672.50) citing insufficient continued-stay documentation.",
+      "attributes": {
+        "denied_amount": 10672.5,
+        "denial_date": "2026-05-22",
+        "carc": "CO-50",
+        "payer_reason": "BH-LOS-06"
+      },
+      "uuid": "bd3af2c2-5566-4523-87a1-75bcd0da2f8c"
+    },
+    {
+      "id": "bh_appeal_2026",
+      "label": "AI Appeal — Days 6–8 Overturn",
+      "category": "Appeal",
+      "type": "FirstLevelAppeal",
+      "summary": "AI Appeal Agent assembled LOCUS/ASAM-grounded packet; UHC overturned 05/28/2026 recovering $10,672.50.",
+      "attributes": {
+        "filed": "2026-05-22",
+        "outcome": "OVERTURNED",
+        "recovered": 10672.5
+      },
+      "uuid": "9b535f2a-db94-4a5a-8cb5-5ae53e05d121"
+    }
+  ],
+  "relations": [
+    {
+      "id": "rel_bh_patient_jordan_ellis_bh_encounter_0417_HAS_ENCOUNTER",
+      "source": "bh_patient_jordan_ellis",
+      "target": "bh_encounter_0417",
+      "relation": "HAS_ENCOUNTER"
+    },
+    {
+      "id": "rel_bh_encounter_0417_bh_payer_uhc_BILLED_TO",
+      "source": "bh_encounter_0417",
+      "target": "bh_payer_uhc",
+      "relation": "BILLED_TO"
+    },
+    {
+      "id": "rel_bh_encounter_0417_bh_denial_co50_DENIED_BY",
+      "source": "bh_encounter_0417",
+      "target": "bh_denial_co50",
+      "relation": "DENIED_BY"
+    },
+    {
+      "id": "rel_bh_denial_co50_bh_appeal_2026_APPEALED_WITH",
+      "source": "bh_denial_co50",
+      "target": "bh_appeal_2026",
+      "relation": "APPEALED_WITH"
+    }
+  ]
+}

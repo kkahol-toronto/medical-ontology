@@ -9,7 +9,7 @@ import type { StageRunState } from '@/lib/agents/runner';
 import type { RcmCase } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
-const SCRIPTED_LETTER = `**APPEAL OF CLAIM DENIAL — CO-50 / N390**
+const ONCOLOGY_SCRIPTED_LETTER = `**APPEAL OF CLAIM DENIAL — CO-50 / N390**
 
 Aetna Claims Appeals  
 PO Box 14463 · Lexington, KY 40512  
@@ -37,6 +37,38 @@ For these reasons, the original CO-50 determination should be **overturned** and
 Respectfully,  
 **Mei-Ling Park, MD** — Thoracic Oncology  
 Chicago Oncology & Infusion Partners · NPI 4819203746`;
+
+const BEHAVIORAL_HEALTH_SCRIPTED_LETTER = `**APPEAL OF CLAIM DENIAL — CO-50 / BH-LOS-06**
+
+UnitedHealthcare Claims Appeals  
+PO Box 740800 · Atlanta, GA 30374  
+RE: Jordan M. Ellis · Member UHC-CP-73492018  
+Claim UHC-BH-2026-0515-0417 · Service Dates 05/06/2026–05/14/2026
+
+To the UnitedHealthcare Medical Director,
+
+I am writing to formally appeal the denial of inpatient psychiatric services for days 6–8 of Mr. Jordan M. Ellis's acute admission, citing CO-50 (medical necessity) and payer reason BH-LOS-06 (continued stay). The consolidated clinical record demonstrates that a lower level of care remained unsafe through day 8.
+
+**Clinical justification:**
+
+1. *Principal diagnosis and admission risk.* Mr. Ellis was admitted under emergency hold for F33.3 (major depressive disorder, recurrent, severe with psychotic features) with active suicidal ideation and plan (R45.851), command auditory hallucinations, and PHQ-9 of 24. C-SSRS at admission was HIGH.
+
+2. *Continued-stay trend days 1–8.* Daily MSE and C-SSRS documentation show persistent moderate-to-high risk through day 7: command hallucinations persisted through day 3; medication titration (olanzapine) with QTc monitoring required physician oversight days 4–7; 1:1 observation maintained until day 7.
+
+3. *ASAM Level 4 / LOCUS Level 6 criteria.* Per **ASAM Criteria** and **LOCUS utilization standards**, acute medically managed inpatient care was required while active suicidal intent, psychosis, and medication instability persisted. Partial hospitalization was evaluated and deemed unsafe given living alone (Z60.2) and medication nonadherence history (Z91.148).
+
+4. *Policy alignment.* The **TN BH Acute Inpatient Guide** and **Medical Necessity Criteria** support continued inpatient care when documentation demonstrates imminent safety risk and inability to manage at a lower level. The denial reflects a documentation aggregation gap, not a lack of medical necessity.
+
+5. *Requested action.* Overturn the denial for days 6–8 ($10,672.50) and reprocess the replacement claim at the contracted PPO rate.
+
+Respectfully,  
+**Maya Patel, MD** — Psychiatry  
+Lakeshore Behavioral Health Center · NPI 1928374650`;
+
+function getScriptedLetter(caseId: RcmCase['id']): string {
+  if (caseId === 'behavioralHealth') return BEHAVIORAL_HEALTH_SCRIPTED_LETTER;
+  return ONCOLOGY_SCRIPTED_LETTER;
+}
 
 interface Props {
   case_: RcmCase;
@@ -142,11 +174,12 @@ export function AppealLetterPanel({ case_, runState }: Props) {
       }
     }
     setSource('scripted');
+    const scripted = getScriptedLetter(case_.id);
     let i = 0;
-    const total = SCRIPTED_LETTER.length;
+    const total = scripted.length;
     const tick = () => {
       const next = Math.min(total, i + Math.ceil(Math.random() * 18 + 6));
-      setDraft(SCRIPTED_LETTER.slice(0, next));
+      setDraft(scripted.slice(0, next));
       i = next;
       if (next < total) {
         setTimeout(tick, 32);
@@ -166,13 +199,14 @@ export function AppealLetterPanel({ case_, runState }: Props) {
             Hero moment · AI Appeal Letter
           </div>
           <h3 className="mt-1 text-xl font-semibold text-white">
-            Draft the overturn letter from clinical evidence + Aetna policy
+            {case_.id === 'behavioralHealth'
+              ? 'Draft the overturn letter from LOCUS/ASAM + continued-stay evidence'
+              : 'Draft the overturn letter from clinical evidence + Aetna policy'}
           </h3>
           <p className="mt-1 max-w-2xl text-sm text-white/70">
-            The agent will cite NCCN NSCL-K, the Aetna Pemetrexed Clinical
-            Policy Bulletin, the patient&apos;s EGFR L858R molecular profile,
-            ECOG 1 status, T3N2M1b staging, pleural metastatic disease, and
-            the analogous UM-MP353 Keytruda precedent.
+            {case_.id === 'behavioralHealth'
+              ? 'The agent will cite ASAM Level 4, LOCUS criteria, daily C-SSRS/MSE chronology, and UHC medical necessity standards to overturn CO-50 + BH-LOS-06.'
+              : "The agent will cite NCCN NSCL-K, the Aetna Pemetrexed Clinical Policy Bulletin, the patient's EGFR L858R molecular profile, ECOG 1 status, T3N2M1b staging, pleural metastatic disease, and the analogous UM-MP353 Keytruda precedent."}
           </p>
         </div>
         <div className="flex items-center gap-3">

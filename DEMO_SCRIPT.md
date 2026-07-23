@@ -3,19 +3,22 @@
 > **App:** `https://main.d22hp05xqwvydi.amplifyapp.com` (or `localhost:3030` for local)
 > **Audience:** NTT DATA healthcare client — RCM operations, finance, and clinical leadership.
 > **Goal:** show that nine specialised AI agents can execute the full revenue cycle on top of an EHR — end-to-end, on real encounters, with a conversational interface to the data.
-> **Total runtime:** 18–22 minutes (modular — every section can stand alone).
+> **Total runtime:** 22–28 minutes (modular — every section can stand alone).
+> **Presenter quick start:** see [docs/DEMO_GIVER_GUIDE.md](docs/DEMO_GIVER_GUIDE.md) for the full 4-case flow including Behavioral Health + knowledge graph.
 
 ---
 
 ## 0 · Pre-flight (do this 5 min before the meeting)
 
-1. Open the app — `https://main.d22hp05xqwvydi.amplifyapp.com`. Confirm the hero loads with the Live AI stack badges showing **Bedrock Online · Comprehend Online · Voice Live Ready** in `eu-west-1`.
+1. Open the app — `https://main.d22hp05xqwvydi.amplifyapp.com`. Confirm the hero loads with **four case cards** and the Live AI stack badges showing **Neurostack Medical Online · NIRA Ready**.
 2. Tap the orange orb (bottom-right) once to confirm the **NIRA** dock opens. Switch to **Voice** tab and confirm "ws connected" briefly. Close it.
-3. Open three tabs in advance for fast switching:
+3. Open tabs in advance for fast switching:
    - `/case/oncology`
    - `/case/oncology/summary`
    - `/views/analytics`
-4. Have one phrase ready for NIRA: *"Walk me through the oncology denial."*
+   - `/views/behavioral-health` (optional — BH knowledge graph)
+   - `/case/behavioralHealth?stage=denial`
+4. Have phrases ready for NIRA: *"Walk me through the oncology denial."* · *"Tell me about the behavioral health appeal."*
 
 ---
 
@@ -30,7 +33,7 @@ Land on `/`.
 Point at:
 - **Headline KPIs** — $95,057 billed across 3 cases, $48,520 collected, 100% clean claim rate, 6 days average to payment.
 - **Swim lane** — the nine RCM stages with AUTO / ASSIST / REVIEW colour bands. Note the human-in-loop bands on Denials and CDI.
-- **Three cases** — Oncology (denied → overturned), Inpatient (clean DRG 291), ASC (clean arthroscopy).
+- **Three cases** — Oncology (denied → overturned), Inpatient (clean DRG 291), ASC (clean arthroscopy), **Behavioral Health** (UHC BH-LOS-06 → appeal overturn).
 
 Click into the **Oncology Hero** card.
 

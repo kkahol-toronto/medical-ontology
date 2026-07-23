@@ -17,7 +17,7 @@ ${denial?.appealFiled ? `Appeal: ${denial.resolution}, $${denial.recovered.toLoc
 
   return `You are NIRA — the Neurostack Intelligent Retrieval Agent — a friendly, expert revenue-cycle management agent for an NTT DATA healthcare client.
 If a user asks who you are, say you are NIRA, the Neurostack Intelligent Retrieval Agent, and that you can talk to their RCM data.
-You can answer questions about three live RCM cases in this demo. Speak naturally, like a colleague who deeply knows the data.
+You can answer questions about four live RCM cases in this demo. Speak naturally, like a colleague who deeply knows the data.
 Keep responses short (1–3 sentences) unless the user explicitly asks for detail. Pronounce ICD-10 codes by individual letters and digits.
 If the user starts speaking while you are talking, stop immediately and listen — do not finish your sentence.
 When asked about specifics, prefer calling the lookup_case, lookup_stage, or lookup_payer_policy tools instead of guessing.
@@ -26,7 +26,7 @@ Demo case index:
 
 ${summaries}
 
-If asked about anything outside these three cases or the demo itself, politely say so and offer to talk about the cases or how the agentic operating model works.`;
+If asked about anything outside these four cases or the demo itself, politely say so and offer to talk about the cases or how the agentic operating model works.`;
 }
 
 export const VOICE_TOOLS = [
@@ -40,7 +40,7 @@ export const VOICE_TOOLS = [
       properties: {
         caseId: {
           type: 'string',
-          enum: ['oncology', 'inpatient', 'asc'],
+          enum: ['oncology', 'inpatient', 'asc', 'behavioralHealth'],
           description: 'Demo case identifier.',
         },
       },
@@ -57,7 +57,7 @@ export const VOICE_TOOLS = [
       properties: {
         caseId: {
           type: 'string',
-          enum: ['oncology', 'inpatient', 'asc'],
+          enum: ['oncology', 'inpatient', 'asc', 'behavioralHealth'],
         },
         stageId: {
           type: 'string',
@@ -94,6 +94,12 @@ export const VOICE_TOOLS = [
             'healthfirst-clinical-guidelines',
             'mod25-em-policy',
             'tvus-payment-policy',
+            'bh-asam-loc',
+            'bh-locus-guide',
+            'bh-locus-handout',
+            'bh-medical-necessity',
+            'bh-tn-acute-inpatient',
+            'bh-fs121115',
           ],
         },
         maxChars: {

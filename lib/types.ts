@@ -1,4 +1,4 @@
-export type CaseId = 'oncology' | 'inpatient' | 'asc';
+export type CaseId = 'oncology' | 'inpatient' | 'asc' | 'behavioralHealth';
 
 export type StageId =
   | 'registration'

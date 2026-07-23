@@ -73,9 +73,9 @@ export default function HomePage() {
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KpiTile
-          label="Total billed (3 cases)"
+          label="Total billed (4 cases)"
           value={formatCurrency(k.totalBilled, { compact: true })}
-          trend="ENC-ONC + ENC-INP + ENC-ASC"
+          trend="ENC-ONC + ENC-INP + ENC-ASC + ENC-BH"
           trendDir="neutral"
         />
         <KpiTile
@@ -93,7 +93,7 @@ export default function HomePage() {
         <KpiTile
           label="Denial overturn rate"
           value={formatPercent(k.denialOverturnRate)}
-          trend="3 of 3 denials overturned"
+          trend="4 of 4 denials overturned"
           trendDir="up"
           accent="orange"
         />
@@ -108,7 +108,7 @@ export default function HomePage() {
             Pick a case
           </span>
         </div>
-        <div className="grid gap-5 lg:grid-cols-3">
+        <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-4">
           {caseList.map((c, i) => (
             <CaseCard key={c.id} case={c} index={i} />
           ))}

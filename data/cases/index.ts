@@ -1,5 +1,6 @@
 import type { CaseId, RcmCase, StageId } from '@/lib/types';
 import { ascCase } from './asc';
+import { behavioralHealthCase } from './behavioral-health';
 import { inpatientCase } from './inpatient';
 import { oncologyCase } from './oncology';
 
@@ -7,9 +8,10 @@ export const cases: Record<CaseId, RcmCase> = {
   oncology: oncologyCase,
   inpatient: inpatientCase,
   asc: ascCase,
+  behavioralHealth: behavioralHealthCase,
 };
 
-export const caseList: RcmCase[] = [oncologyCase, inpatientCase, ascCase];
+export const caseList: RcmCase[] = [oncologyCase, inpatientCase, ascCase, behavioralHealthCase];
 
 export function getCase(id: string): RcmCase | undefined {
   return (cases as Record<string, RcmCase>)[id];
@@ -51,7 +53,7 @@ export const STAGE_TITLE: Record<StageId, string> = {
   payment: 'Payment & Collections',
 };
 
-/** Roll-up KPIs across the 3 cases for the landing dashboard. */
+/** Roll-up KPIs across the 4 cases for the landing dashboard. */
 export function rollupKpis() {
   const totalBilled = caseList.reduce((s, c) => s + c.kpis.totalBilled, 0);
   const totalPaid = caseList.reduce(

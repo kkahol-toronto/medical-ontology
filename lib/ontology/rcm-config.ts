@@ -62,6 +62,22 @@ export const CASE_ENTITIES: Record<
     description:
       'Knee arthroscopy — clean claim, 100% denial prevention, 8-day payment.',
   },
+  behavioralHealth: {
+    label: 'Behavioral Health · UHC acute psychiatry',
+    entities: [
+      'Patient',
+      'Encounter',
+      'Payer',
+      'LevelOfCare',
+      'Denial',
+      'Appeal',
+      'Policy',
+      'LOCUS',
+      'ASAM',
+    ],
+    description:
+      '8-day acute inpatient psych — CO-50 + BH-LOS-06 overturned via LOCUS/ASAM continued-stay appeal.',
+  },
 };
 
 export const ENTITY_SYSTEMS: Record<string, string> = {
@@ -101,4 +117,7 @@ export const ENTITY_SYSTEMS: Record<string, string> = {
   ChemoRegimen: 'Oncology protocol',
   MCC: 'CC / MCC table',
   Procedure: 'CPT / ASC fee',
+  LevelOfCare: 'ASAM / LOCUS',
+  LOCUS: 'LOCUS utilization system',
+  ASAM: 'ASAM criteria v4.1',
 };
